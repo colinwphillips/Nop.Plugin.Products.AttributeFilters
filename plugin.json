@@ -1,0 +1,11 @@
+﻿{
+  "Group": "Widgets",
+  "FriendlyName": "Product Attribute Filtering",
+  "SystemName": "Products.AttributeFiltering",
+  "Version": "0.01",
+  "SupportedVersions": [ "4.00" ],
+  "Author": "Colin W. Phillips",
+  "DisplayOrder": 2,
+  "FileName": "Nop.Plugin.Products.AttributeFilters.dll",
+  "Description": "This plugin overrides the ProductModelFactory to provide attribute filtering to valid combinations of a given product."
+}
