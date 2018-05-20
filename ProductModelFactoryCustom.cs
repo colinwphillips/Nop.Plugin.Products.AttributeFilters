@@ -106,7 +106,7 @@ namespace Nop.Plugin.Products.AttributeFilters
 
         /// <inheritdoc />
         /// <summary>
-        /// UNMODIFIED! overriden / new only so that the actual custom code is called (PrepareProductAttributeModels)
+        /// Function remains unmodifed and is present so custom code is called (PrepareProductAttributeModels)
         /// Prepare the product details model
         /// </summary>
         /// <param name="product">Product</param>
@@ -316,7 +316,7 @@ namespace Nop.Plugin.Products.AttributeFilters
 
         /// <inheritdoc />
         /// <summary>
-        /// Prepare the product attribute models
+        /// See custom code region, rest of function remains unaltered
         /// </summary>
         /// <param name="product">Product</param>
         /// <param name="updatecartitem">Updated shopping cart item</param>
@@ -379,7 +379,11 @@ namespace Nop.Plugin.Products.AttributeFilters
                 {
                     //values
                     var attributeValues = _productAttributeService.GetProductAttributeValues(attribute.Id);
+
+                    #region Only custom code in function lives here!
                     FilterAttributes(product, ref attributeValues);
+                    #endregion
+
                     foreach (var attributeValue in attributeValues)
                     {
                         var valueModel = new ProductDetailsModel.ProductAttributeValueModel
