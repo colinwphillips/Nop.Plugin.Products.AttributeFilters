@@ -1,14 +1,10 @@
-﻿using Nop.Web.Factories;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using Nop.Core;
+﻿using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Media;
 using Nop.Core.Domain.Orders;
+using Nop.Core.Domain.Security;
 using Nop.Core.Domain.Seo;
 using Nop.Core.Domain.Vendors;
 using Nop.Services.Catalog;
@@ -17,91 +13,142 @@ using Nop.Services.Directory;
 using Nop.Services.Helpers;
 using Nop.Services.Localization;
 using Nop.Services.Media;
+using Nop.Services.Orders;
 using Nop.Services.Security;
 using Nop.Services.Seo;
 using Nop.Services.Shipping.Date;
 using Nop.Services.Stores;
 using Nop.Services.Tax;
 using Nop.Services.Vendors;
-using Nop.Web.Framework.Security.Captcha;
 using Nop.Web.Infrastructure.Cache;
 using Nop.Web.Models.Catalog;
 using Nop.Web.Models.Media;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using Nop.Core.Data;
+using Nop.Core.Domain.Common;
+using Nop.Core.Domain.Localization;
+using Nop.Core.Domain.Stores;
+using Nop.Data;
+using Nop.Services.Events;
+using Nop.Services.Messages;
+using ProductModelFactory = Nop.Web.Factories.ProductModelFactory;
 
 namespace Nop.Plugin.Products.AttributeFilters
 {
     public partial class ProductModelFactoryCustom : ProductModelFactory
     {
-        private ISpecificationAttributeService _specificationAttributeService;
-        private ICategoryService _categoryService;
-        private IManufacturerService _manufacturerService;
-        private IProductService _productService;
-        private IVendorService _vendorService;
-        private IStoreContext _storeContext;
-        private IProductTemplateService _productTemplateService;
-        private IProductAttributeService _productAttributeService;
-        private IWorkContext _workContext;
-        private IProductTagService _productTagService;
-        private ILocalizationService _localizationService;
-        private IMeasureService _measureService;
-        private ITaxService _taxService;
-        private IPictureService _pictureService;
-        private IPermissionService _permissionService;
-        private IPriceFormatter _priceFormatter;
-        private IPriceCalculationService _priceCalculationService;
-        private IWebHelper _webHelper;
-        private IDateTimeHelper _dateTimeHelper;
-        private IDateRangeService _dateRangeService;
-        private CatalogSettings _catalogSettings;
-        private SeoSettings _seoSettings;
-        private VendorSettings _vendorSettings;
-        private CaptchaSettings _captchaSettings;
-        private MediaSettings _mediaSettings;
-        private IAclService _aclService;
-        private IStoreMappingService _storeMappingService;
-        private IDownloadService _downloadService;
-        private IProductAttributeParser _productAttributeParser;
-        private CustomerSettings _customerSettings;
-        private OrderSettings _orderSettings;
-        private IStaticCacheManager _cacheManager;
-        public ICurrencyService _currencyService { get; set; }
+        #region Fields
 
-        public ProductModelFactoryCustom(ISpecificationAttributeService specificationAttributeService, ICategoryService categoryService, IManufacturerService manufacturerService, IProductService productService, IVendorService vendorService, IProductTemplateService productTemplateService, IProductAttributeService productAttributeService, IWorkContext workContext, IStoreContext storeContext, ITaxService taxService, ICurrencyService currencyService, IPictureService pictureService, ILocalizationService localizationService, IMeasureService measureService, IPriceCalculationService priceCalculationService, IPriceFormatter priceFormatter, IWebHelper webHelper, IDateTimeHelper dateTimeHelper, IProductTagService productTagService, IAclService aclService, IStoreMappingService storeMappingService, IPermissionService permissionService, IDownloadService downloadService, IProductAttributeParser productAttributeParser, IDateRangeService dateRangeService, MediaSettings mediaSettings, CatalogSettings catalogSettings, VendorSettings vendorSettings, CustomerSettings customerSettings, CaptchaSettings captchaSettings, OrderSettings orderSettings, SeoSettings seoSettings, IStaticCacheManager cacheManager)
-            : base(specificationAttributeService, categoryService, manufacturerService, productService, vendorService, productTemplateService, productAttributeService, workContext, storeContext, taxService, currencyService, pictureService, localizationService, measureService, priceCalculationService, priceFormatter, webHelper, dateTimeHelper, productTagService, aclService, storeMappingService, permissionService, downloadService, productAttributeParser, dateRangeService, mediaSettings, catalogSettings, vendorSettings, customerSettings, captchaSettings, orderSettings, seoSettings, cacheManager)
+        private readonly CaptchaSettings _captchaSettings;
+        private readonly CatalogSettings _catalogSettings;
+        private readonly CustomerSettings _customerSettings;
+        private readonly ICategoryService _categoryService;
+        private readonly ICurrencyService _currencyService;
+        private readonly ICustomerService _customerService;
+        private readonly IDateRangeService _dateRangeService;
+        private readonly IDateTimeHelper _dateTimeHelper;
+        private readonly IDownloadService _downloadService;
+        private readonly ILocalizationService _localizationService;
+        private readonly IManufacturerService _manufacturerService;
+        private readonly IPermissionService _permissionService;
+        private readonly IPictureService _pictureService;
+        private readonly IPriceCalculationService _priceCalculationService;
+        private readonly IPriceFormatter _priceFormatter;
+        private readonly IProductAttributeParser _productAttributeParser;
+        private readonly IProductAttributeService _productAttributeService;
+        private readonly IProductService _productService;
+        private readonly IProductTagService _productTagService;
+        private readonly IProductTemplateService _productTemplateService;
+        private readonly IReviewTypeService _reviewTypeService;
+        private readonly ISpecificationAttributeService _specificationAttributeService;
+        private readonly IStaticCacheManager _cacheManager;
+        private readonly IStoreContext _storeContext;
+        private readonly ITaxService _taxService;
+        private readonly IUrlRecordService _urlRecordService;
+        private readonly IVendorService _vendorService;
+        private readonly IWebHelper _webHelper;
+        private readonly IWorkContext _workContext;
+        private readonly MediaSettings _mediaSettings;
+        private readonly OrderSettings _orderSettings;
+        private readonly SeoSettings _seoSettings;
+        private readonly VendorSettings _vendorSettings;
+
+        #endregion
+
+        public ProductModelFactoryCustom(CaptchaSettings captchaSettings,
+            CatalogSettings catalogSettings,
+            CustomerSettings customerSettings,
+            ICategoryService categoryService,
+            ICurrencyService currencyService,
+            ICustomerService customerService,
+            IDateRangeService dateRangeService,
+            IDateTimeHelper dateTimeHelper,
+            IDownloadService downloadService,
+            ILocalizationService localizationService,
+            IManufacturerService manufacturerService,
+            IPermissionService permissionService,
+            IPictureService pictureService,
+            IPriceCalculationService priceCalculationService,
+            IPriceFormatter priceFormatter,
+            IProductAttributeParser productAttributeParser,
+            IProductAttributeService productAttributeService,
+            IProductService productService,
+            IProductTagService productTagService,
+            IProductTemplateService productTemplateService,
+            IReviewTypeService reviewTypeService,
+            ISpecificationAttributeService specificationAttributeService,
+            IStaticCacheManager cacheManager,
+            IStoreContext storeContext,
+            ITaxService taxService,
+            IUrlRecordService urlRecordService,
+            IVendorService vendorService,
+            IWebHelper webHelper,
+            IWorkContext workContext,
+            MediaSettings mediaSettings,
+            OrderSettings orderSettings,
+            SeoSettings seoSettings,
+            VendorSettings vendorSettings)
+            : base(captchaSettings, catalogSettings, customerSettings, categoryService, currencyService, customerService, dateRangeService, dateTimeHelper, 
+                downloadService, localizationService, manufacturerService, permissionService, pictureService, priceCalculationService, priceFormatter, 
+                productAttributeParser, productAttributeService, productService, productTagService, productTemplateService, reviewTypeService, specificationAttributeService, 
+                cacheManager, storeContext, taxService, urlRecordService, vendorService, webHelper, workContext, mediaSettings, orderSettings, seoSettings, vendorSettings)
         {
-            this._specificationAttributeService = specificationAttributeService;
+            this._captchaSettings = captchaSettings;
+            this._catalogSettings = catalogSettings;
+            this._customerSettings = customerSettings;
             this._categoryService = categoryService;
-            this._manufacturerService = manufacturerService;
-            this._productService = productService;
-            this._vendorService = vendorService;
-            this._productTemplateService = productTemplateService;
-            this._productAttributeService = productAttributeService;
-            this._workContext = workContext;
-            this._storeContext = storeContext;
-            this._taxService = taxService;
             this._currencyService = currencyService;
-            this._pictureService = pictureService;
+            this._customerService = customerService;
+            this._dateRangeService = dateRangeService;
+            this._dateTimeHelper = dateTimeHelper;
+            this._downloadService = downloadService;
             this._localizationService = localizationService;
-            this._measureService = measureService;
+            this._manufacturerService = manufacturerService;
+            this._permissionService = permissionService;
+            this._pictureService = pictureService;
             this._priceCalculationService = priceCalculationService;
             this._priceFormatter = priceFormatter;
-            this._webHelper = webHelper;
-            this._dateTimeHelper = dateTimeHelper;
-            this._productTagService = productTagService;
-            this._aclService = aclService;
-            this._storeMappingService = storeMappingService;
-            this._permissionService = permissionService;
-            this._downloadService = downloadService;
             this._productAttributeParser = productAttributeParser;
-            this._dateRangeService = dateRangeService;
+            this._productAttributeService = productAttributeService;
+            this._productService = productService;
+            this._productTagService = productTagService;
+            this._productTemplateService = productTemplateService;
+            this._reviewTypeService = reviewTypeService;
+            this._specificationAttributeService = specificationAttributeService;
+            this._cacheManager = cacheManager;
+            this._storeContext = storeContext;
+            this._taxService = taxService;
+            this._urlRecordService = urlRecordService;
+            this._vendorService = vendorService;
+            this._webHelper = webHelper;
+            this._workContext = workContext;
             this._mediaSettings = mediaSettings;
-            this._catalogSettings = catalogSettings;
-            this._vendorSettings = vendorSettings;
-            this._customerSettings = customerSettings;
-            this._captchaSettings = captchaSettings;
             this._orderSettings = orderSettings;
             this._seoSettings = seoSettings;
-            this._cacheManager = cacheManager;
+            this._vendorSettings = vendorSettings;
         }
 
         /// <inheritdoc />
@@ -123,13 +170,13 @@ namespace Nop.Plugin.Products.AttributeFilters
             var model = new ProductDetailsModel
             {
                 Id = product.Id,
-                Name = product.GetLocalized(x => x.Name),
-                ShortDescription = product.GetLocalized(x => x.ShortDescription),
-                FullDescription = product.GetLocalized(x => x.FullDescription),
-                MetaKeywords = product.GetLocalized(x => x.MetaKeywords),
-                MetaDescription = product.GetLocalized(x => x.MetaDescription),
-                MetaTitle = product.GetLocalized(x => x.MetaTitle),
-                SeName = product.GetSeName(),
+                Name = _localizationService.GetLocalized(product, x => x.Name),
+                ShortDescription = _localizationService.GetLocalized(product, x => x.ShortDescription),
+                FullDescription = _localizationService.GetLocalized(product, x => x.FullDescription),
+                MetaKeywords = _localizationService.GetLocalized(product, x => x.MetaKeywords),
+                MetaDescription = _localizationService.GetLocalized(product, x => x.MetaDescription),
+                MetaTitle = _localizationService.GetLocalized(product, x => x.MetaTitle),
+                SeName = _urlRecordService.GetSeName(product),
                 ProductType = product.ProductType,
                 ShowSku = _catalogSettings.ShowSkuOnProductDetailsPage,
                 Sku = product.Sku,
@@ -139,7 +186,7 @@ namespace Nop.Plugin.Products.AttributeFilters
                 ShowGtin = _catalogSettings.ShowGtin,
                 Gtin = product.Gtin,
                 ManageInventoryMethod = product.ManageInventoryMethod,
-                StockAvailability = product.FormatStockMessage("", _localizationService, _productAttributeParser, _dateRangeService),
+                StockAvailability = _productService.FormatStockMessage(product, ""),
                 HasSampleDownload = product.IsDownload && product.HasSampleDownload,
                 DisplayDiscontinuedMessage = !product.Published && _catalogSettings.DisplayDiscontinuedMessageForUnpublishedProducts
             };
@@ -160,7 +207,7 @@ namespace Nop.Plugin.Products.AttributeFilters
                 var deliveryDate = _dateRangeService.GetDeliveryDateById(product.DeliveryDateId);
                 if (deliveryDate != null)
                 {
-                    model.DeliveryDate = deliveryDate.GetLocalized(dd => dd.Name);
+                    model.DeliveryDate = _localizationService.GetLocalized(deliveryDate, dd => dd.Name);
                 }
             }
 
@@ -169,7 +216,7 @@ namespace Nop.Plugin.Products.AttributeFilters
             //compare products
             model.CompareProductsEnabled = _catalogSettings.CompareProductsEnabled;
             //store name
-            model.CurrentStoreName = _storeContext.CurrentStore.GetLocalized(x => x.Name);
+            model.CurrentStoreName = _localizationService.GetLocalized(_storeContext.CurrentStore, x => x.Name);
 
             //vendor details
             if (_vendorSettings.ShowVendorOnProductDetailsPage)
@@ -182,8 +229,8 @@ namespace Nop.Plugin.Products.AttributeFilters
                     model.VendorModel = new VendorBriefInfoModel
                     {
                         Id = vendor.Id,
-                        Name = vendor.GetLocalized(x => x.Name),
-                        SeName = vendor.GetSeName(),
+                        Name = _localizationService.GetLocalized(vendor, x => x.Name),
+                        SeName = _urlRecordService.GetSeName(vendor),
                     };
                 }
             }
@@ -194,7 +241,7 @@ namespace Nop.Plugin.Products.AttributeFilters
                 var shareCode = _catalogSettings.PageShareCode;
                 if (_webHelper.IsCurrentConnectionSecured())
                 {
-                    //need to change the addthis link to be https linked when the page is, so that the page doesnt ask about mixed mode when viewed in https...
+                    //need to change the add this link to be https linked when the page is, so that the page doesn't ask about mixed mode when viewed in https...
                     shareCode = shareCode.Replace("http://", "https://");
                 }
                 model.PageShareCode = shareCode;
@@ -204,7 +251,7 @@ namespace Nop.Plugin.Products.AttributeFilters
             if (product.ManageInventoryMethod == ManageInventoryMethod.ManageStock &&
                 product.BackorderMode == BackorderMode.NoBackorders &&
                 product.AllowBackInStockSubscriptions &&
-                product.GetTotalStockQuantity() <= 0)
+                _productService.GetTotalStockQuantity(product) <= 0)
             {
                 //out of stock
                 model.DisplayBackInStockSubscription = true;
@@ -243,7 +290,7 @@ namespace Nop.Plugin.Products.AttributeFilters
 
                 if (updatecartitem == null)
                 {
-                    model.GiftCard.SenderName = _workContext.CurrentCustomer.GetFullName();
+                    model.GiftCard.SenderName = _customerService.GetCustomerFullName(_workContext.CurrentCustomer);
                     model.GiftCard.SenderEmail = _workContext.CurrentCustomer.Email;
                 }
                 else
@@ -280,7 +327,7 @@ namespace Nop.Plugin.Products.AttributeFilters
             }
 
             //manufacturers
-            //do not prepare this model for the associated products. anywway it's not used
+            //do not prepare this model for the associated products. anyway it's not used
             if (!isAssociatedProduct)
             {
                 model.ProductManufacturers = PrepareProductManufacturerModels(product);
@@ -330,16 +377,14 @@ namespace Nop.Plugin.Products.AttributeFilters
             //We cache a value indicating whether a product has attributes
             IList<ProductAttributeMapping> productAttributeMapping = null;
             var cacheKey = string.Format(ModelCacheEventConsumer.PRODUCT_HAS_PRODUCT_ATTRIBUTES_KEY, product.Id);
-            var hasProductAttributesCache = _cacheManager.Get<bool?>(cacheKey);
-            if (!hasProductAttributesCache.HasValue)
+            var hasProductAttributesCache = _cacheManager.Get(cacheKey, () =>
             {
                 //no value in the cache yet
                 //let's load attributes and cache the result (true/false)
                 productAttributeMapping = _productAttributeService.GetProductAttributeMappingsByProductId(product.Id);
-                hasProductAttributesCache = productAttributeMapping.Any();
-                _cacheManager.Set(cacheKey, hasProductAttributesCache, 60);
-            }
-            if (hasProductAttributesCache.Value && productAttributeMapping == null)
+                return productAttributeMapping.Any();
+            });
+            if (hasProductAttributesCache && productAttributeMapping == null)
             {
                 //cache indicates that the product has attributes
                 //let's load them
@@ -352,7 +397,6 @@ namespace Nop.Plugin.Products.AttributeFilters
 
             var model = new List<ProductDetailsModel.ProductAttributeModel>();
 
-            //FilterAttributes(product, ref productAttributeMapping);// CWP - too early, rebuilds values below...
             foreach (var attribute in productAttributeMapping)
             {
                 var attributeModel = new ProductDetailsModel.ProductAttributeModel
@@ -360,9 +404,9 @@ namespace Nop.Plugin.Products.AttributeFilters
                     Id = attribute.Id,
                     ProductId = product.Id,
                     ProductAttributeId = attribute.ProductAttributeId,
-                    Name = attribute.ProductAttribute.GetLocalized(x => x.Name),
-                    Description = attribute.ProductAttribute.GetLocalized(x => x.Description),
-                    TextPrompt = attribute.GetLocalized(x => x.TextPrompt),
+                    Name = _localizationService.GetLocalized(attribute.ProductAttribute, x => x.Name),
+                    Description = _localizationService.GetLocalized(attribute.ProductAttribute, x => x.Description),
+                    TextPrompt = _localizationService.GetLocalized(attribute, x => x.TextPrompt),
                     IsRequired = attribute.IsRequired,
                     AttributeControlType = attribute.AttributeControlType,
                     DefaultValue = updatecartitem != null ? null : attribute.DefaultValue,
@@ -380,7 +424,8 @@ namespace Nop.Plugin.Products.AttributeFilters
                     //values
                     var attributeValues = _productAttributeService.GetProductAttributeValues(attribute.Id);
 
-                    #region Only custom code in function lives here!
+                    #region CUSTOM CODE
+                    // Only custom code in function lives here!
                     FilterAttributes(product, ref attributeValues);
                     #endregion
 
@@ -389,7 +434,7 @@ namespace Nop.Plugin.Products.AttributeFilters
                         var valueModel = new ProductDetailsModel.ProductAttributeValueModel
                         {
                             Id = attributeValue.Id,
-                            Name = attributeValue.GetLocalized(x => x.Name),
+                            Name = _localizationService.GetLocalized(attributeValue, x => x.Name),
                             ColorSquaresRgb = attributeValue.ColorSquaresRgb, //used with "Color squares" attribute type
                             IsPreSelected = attributeValue.IsPreSelected,
                             CustomerEntersQty = attributeValue.CustomerEntersQty,
@@ -400,13 +445,24 @@ namespace Nop.Plugin.Products.AttributeFilters
                         //display price if allowed
                         if (_permissionService.Authorize(StandardPermissionProvider.DisplayPrices))
                         {
-                            var attributeValuePriceAdjustment = _priceCalculationService.GetProductAttributeValuePriceAdjustment(attributeValue);
+                            var attributeValuePriceAdjustment = _priceCalculationService.GetProductAttributeValuePriceAdjustment(attributeValue, updatecartitem?.Customer ?? _workContext.CurrentCustomer);
                             var priceAdjustmentBase = _taxService.GetProductPrice(product, attributeValuePriceAdjustment, out decimal _);
                             var priceAdjustment = _currencyService.ConvertFromPrimaryStoreCurrency(priceAdjustmentBase, _workContext.WorkingCurrency);
-                            if (priceAdjustmentBase > decimal.Zero)
-                                valueModel.PriceAdjustment = "+" + _priceFormatter.FormatPrice(priceAdjustment, false, false);
-                            else if (priceAdjustmentBase < decimal.Zero)
-                                valueModel.PriceAdjustment = "-" + _priceFormatter.FormatPrice(-priceAdjustment, false, false);
+
+                            if (attributeValue.PriceAdjustmentUsePercentage)
+                            {
+                                var priceAdjustmentStr = attributeValue.PriceAdjustment.ToString("G29");
+                                if (attributeValue.PriceAdjustment > decimal.Zero)
+                                    valueModel.PriceAdjustment = "+";
+                                valueModel.PriceAdjustment += priceAdjustmentStr + "%";
+                            }
+                            else
+                            {
+                                if (priceAdjustmentBase > decimal.Zero)
+                                    valueModel.PriceAdjustment = "+" + _priceFormatter.FormatPrice(priceAdjustment, false, false);
+                                else if (priceAdjustmentBase < decimal.Zero)
+                                    valueModel.PriceAdjustment = "-" + _priceFormatter.FormatPrice(-priceAdjustment, false, false);
+                            }
 
                             valueModel.PriceAdjustmentValue = priceAdjustment;
                         }
@@ -542,35 +598,22 @@ namespace Nop.Plugin.Products.AttributeFilters
         {
             if (product == null || attributeValues == null) return;
             attributeValues = (from attr in attributeValues let id = attr.Id let match = product.ProductAttributeCombinations.FirstOrDefault(a => a.AttributesXml.Contains($"<Value>{id}</Value>")) where match != null select attr).ToList();
-            //foreach (var attr in attributeValues)
-            //{
-            //    var id = attr.Id;
-            //    var match = product.ProductAttributeCombinations.FirstOrDefault(a =>
-            //        a.AttributesXml.Contains($"<Value>{id}</Value>"));
-            //    if (match != null)
-            //        validValues.Add(attr);
-            //}
-            //attributeValues = validValues;
         }
 
         public void FilterAttributes(Product product, ref IList<ProductAttributeMapping> productAttributes)
         {
-            // filter the list down to valid combinations first
             foreach (var attr in productAttributes)
-                attr.ProductAttributeValues = (from value in attr.ProductAttributeValues let id = value.Id let match = product.ProductAttributeCombinations.FirstOrDefault(a => a.AttributesXml.Contains($"<Value>{id}</Value>")) where match != null select value).ToList();
-            //{
-            //var validValues = new List<ProductAttributeValue>();
-            //foreach (var value in attr.ProductAttributeValues)
-            //{
-            //    var id = value.Id;
-            //    var match = product.ProductAttributeCombinations.FirstOrDefault(a =>
-            //        a.AttributesXml.Contains($"<Value>{id}</Value>"));
-            //    if (match != null)
-            //        validValues.Add(value);
-            //}
-            //attr.ProductAttributeValues = validValues;
-            //}
-            // end filtering
+            {
+                var values = (from value in attr.ProductAttributeValues
+                    let id = value.Id
+                    let match = product.ProductAttributeCombinations.FirstOrDefault(a =>
+                        a.AttributesXml.Contains($"<Value>{id}</Value>"))
+                    where match != null
+                    select value).ToList();
+                attr.ProductAttributeValues.Clear();
+                foreach(var value in values) // unfortunate double-iteration 
+                attr.ProductAttributeValues.Add(value);
+            }
         }
     }
 }

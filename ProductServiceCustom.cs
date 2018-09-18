@@ -12,6 +12,7 @@ using Nop.Services.Events;
 using Nop.Services.Localization;
 using Nop.Services.Messages;
 using Nop.Services.Security;
+using Nop.Services.Shipping.Date;
 using Nop.Services.Stores;
 
 namespace Nop.Plugin.Products.AttributeFilters
@@ -46,8 +47,32 @@ namespace Nop.Plugin.Products.AttributeFilters
         private readonly IAclService _aclService;
         private readonly IStoreMappingService _storeMappingService;
 
-        public ProductServiceCustom(ICacheManager cacheManager, IRepository<Product> productRepository, IRepository<RelatedProduct> relatedProductRepository, IRepository<CrossSellProduct> crossSellProductRepository, IRepository<TierPrice> tierPriceRepository, IRepository<ProductPicture> productPictureRepository, IRepository<LocalizedProperty> localizedPropertyRepository, IRepository<AclRecord> aclRepository, IRepository<StoreMapping> storeMappingRepository, IRepository<ProductSpecificationAttribute> productSpecificationAttributeRepository, IRepository<ProductReview> productReviewRepository, IRepository<ProductWarehouseInventory> productWarehouseInventoryRepository, IRepository<SpecificationAttributeOption> specificationAttributeOptionRepository, IRepository<StockQuantityHistory> stockQuantityHistoryRepository, IProductAttributeService productAttributeService, IProductAttributeParser productAttributeParser, ILanguageService languageService, IWorkflowMessageService workflowMessageService, IDataProvider dataProvider, IDbContext dbContext, IWorkContext workContext, LocalizationSettings localizationSettings, CommonSettings commonSettings, CatalogSettings catalogSettings, IEventPublisher eventPublisher, IAclService aclService, IStoreMappingService storeMappingService) 
-            : base(cacheManager, productRepository, relatedProductRepository, crossSellProductRepository, tierPriceRepository, productPictureRepository, localizedPropertyRepository, aclRepository, storeMappingRepository, productSpecificationAttributeRepository, productReviewRepository, productWarehouseInventoryRepository, specificationAttributeOptionRepository, stockQuantityHistoryRepository, productAttributeService, productAttributeParser, languageService, workflowMessageService, dataProvider, dbContext, workContext, localizationSettings, commonSettings, catalogSettings, eventPublisher, aclService, storeMappingService)
+        public ProductServiceCustom(CatalogSettings catalogSettings,
+            CommonSettings commonSettings,
+            IAclService aclService,
+            ICacheManager cacheManager,
+            IDataProvider dataProvider,
+            IDateRangeService dateRangeService,
+            IDbContext dbContext,
+            IEventPublisher eventPublisher,
+            ILanguageService languageService,
+            ILocalizationService localizationService,
+            IProductAttributeParser productAttributeParser,
+            IProductAttributeService productAttributeService,
+            IRepository<AclRecord> aclRepository,
+            IRepository<CrossSellProduct> crossSellProductRepository,
+            IRepository<Product> productRepository,
+            IRepository<ProductPicture> productPictureRepository,
+            IRepository<ProductReview> productReviewRepository,
+            IRepository<ProductWarehouseInventory> productWarehouseInventoryRepository,
+            IRepository<RelatedProduct> relatedProductRepository,
+            IRepository<StockQuantityHistory> stockQuantityHistoryRepository,
+            IRepository<StoreMapping> storeMappingRepository,
+            IRepository<TierPrice> tierPriceRepository,
+            IStoreMappingService storeMappingService,
+            IWorkContext workContext,
+            LocalizationSettings localizationSettings)
+            : base(catalogSettings, commonSettings, aclService, cacheManager, dataProvider, dateRangeService, dbContext, eventPublisher, languageService, localizationService, productAttributeParser, productAttributeService, aclRepository, crossSellProductRepository, productRepository, productPictureRepository, productReviewRepository, productWarehouseInventoryRepository, relatedProductRepository, stockQuantityHistoryRepository, storeMappingRepository, tierPriceRepository, storeMappingService, workContext, localizationSettings)
         {
             this._cacheManager = cacheManager;
             this._productRepository = productRepository;
@@ -55,18 +80,14 @@ namespace Nop.Plugin.Products.AttributeFilters
             this._crossSellProductRepository = crossSellProductRepository;
             this._tierPriceRepository = tierPriceRepository;
             this._productPictureRepository = productPictureRepository;
-            this._localizedPropertyRepository = localizedPropertyRepository;
             this._aclRepository = aclRepository;
             this._storeMappingRepository = storeMappingRepository;
-            this._productSpecificationAttributeRepository = productSpecificationAttributeRepository;
             this._productReviewRepository = productReviewRepository;
             this._productWarehouseInventoryRepository = productWarehouseInventoryRepository;
-            this._specificationAttributeOptionRepository = specificationAttributeOptionRepository;
             this._stockQuantityHistoryRepository = stockQuantityHistoryRepository;
             this._productAttributeService = productAttributeService;
             this._productAttributeParser = productAttributeParser;
             this._languageService = languageService;
-            this._workflowMessageService = workflowMessageService;
             this._dataProvider = dataProvider;
             this._dbContext = dbContext;
             this._workContext = workContext;

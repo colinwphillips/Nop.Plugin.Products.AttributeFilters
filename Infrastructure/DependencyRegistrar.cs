@@ -11,6 +11,8 @@ using Nop.Core.Infrastructure;
 using Nop.Core.Infrastructure.DependencyManagement;
 using Nop.Core.Plugins;
 using Nop.Services.Catalog;
+using Nop.Services.Events;
+using Nop.Services.Plugins;
 using Nop.Web.Factories;
 
 namespace Nop.Plugin.Products.AttributeFilters.Infrastructure
@@ -30,17 +32,20 @@ namespace Nop.Plugin.Products.AttributeFilters.Infrastructure
 
         private static bool IsPluginInstalled(ITypeFinder typeFinder)
         {
-            var isInstalled = false;
-            var types = typeFinder.FindClassesOfType<IPluginFinder>(true).ToList();
-            if (types.Count() != 1) return false;
-            var plugins = Activator.CreateInstance(types.First()) as IPluginFinder;
             var thisPlugin = GetPluginInfo();
             if (thisPlugin == null) return false;
-            var plug = plugins?.GetPluginDescriptorBySystemName(thisPlugin.SystemName);
-            if (plug != null && plug.Installed)
-                isInstalled = true;
 
-            return isInstalled;
+            var subscriptionService = new SubscriptionService();
+            var eventPublisher = new EventPublisher(subscriptionService);
+            var types = typeFinder.FindClassesOfType<IPluginFinder>();
+
+            var enumerable = types as Type[] ?? types.ToArray();
+            if (enumerable.Count() != 1) return false;
+            if (!(Activator.CreateInstance(enumerable.First(), eventPublisher) is IPluginFinder pluginFinder))
+                return false;
+            var currentPlugin = pluginFinder.GetPluginDescriptorBySystemName(thisPlugin.SystemName);
+            return currentPlugin != null && currentPlugin.Installed;
+
         }
 
         private static PluginDescriptor GetPluginInfo()

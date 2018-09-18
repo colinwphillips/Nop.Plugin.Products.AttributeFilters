@@ -15,13 +15,13 @@ namespace Nop.Plugin.Products.AttributeFilters
 
         public override void Install()
         {
-            Console.WriteLine($"Installed {nameof(AttributeFilterPlugin)}.");
+            Console.WriteLine($"Installed {this.GetType().Name}.");
             base.Install();
         }
 
         public override void Uninstall()
         {
-            Console.WriteLine($"Uninstalled {nameof(AttributeFilterPlugin)}.");
+            Console.WriteLine($"Uninstalled {this.GetType().Name}.");
             base.Uninstall();
         }
     }

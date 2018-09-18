@@ -1,9 +1,9 @@
 ﻿{
-  "Group": "Miscellaneous",
+  "Group": "Widgets",
   "FriendlyName": "Product Attribute Filtering",
   "SystemName": "Products.AttributeFiltering",
   "Version": "0.01",
-  "SupportedVersions": [ "4.00" ],
+  "SupportedVersions": [ "4.10" ],
   "Author": "Colin W. Phillips",
   "DisplayOrder": 2,
   "FileName": "Nop.Plugin.Products.AttributeFilters.dll",
