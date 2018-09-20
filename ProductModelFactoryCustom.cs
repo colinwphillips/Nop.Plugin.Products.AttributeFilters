@@ -160,205 +160,205 @@ namespace Nop.Plugin.Products.AttributeFilters
         /// <param name="updatecartitem">Updated shopping cart item</param>
         /// <param name="isAssociatedProduct">Whether the product is associated</param>
         /// <returns>Product details model</returns>
-        public override ProductDetailsModel PrepareProductDetailsModel(Product product,
-            ShoppingCartItem updatecartitem = null, bool isAssociatedProduct = false)
-        {
-            if (product == null)
-                throw new ArgumentNullException(nameof(product));
+        //public override ProductDetailsModel PrepareProductDetailsModel(Product product,
+        //    ShoppingCartItem updatecartitem = null, bool isAssociatedProduct = false)
+        //{
+        //    if (product == null)
+        //        throw new ArgumentNullException(nameof(product));
 
-            //standard properties
-            var model = new ProductDetailsModel
-            {
-                Id = product.Id,
-                Name = _localizationService.GetLocalized(product, x => x.Name),
-                ShortDescription = _localizationService.GetLocalized(product, x => x.ShortDescription),
-                FullDescription = _localizationService.GetLocalized(product, x => x.FullDescription),
-                MetaKeywords = _localizationService.GetLocalized(product, x => x.MetaKeywords),
-                MetaDescription = _localizationService.GetLocalized(product, x => x.MetaDescription),
-                MetaTitle = _localizationService.GetLocalized(product, x => x.MetaTitle),
-                SeName = _urlRecordService.GetSeName(product),
-                ProductType = product.ProductType,
-                ShowSku = _catalogSettings.ShowSkuOnProductDetailsPage,
-                Sku = product.Sku,
-                ShowManufacturerPartNumber = _catalogSettings.ShowManufacturerPartNumber,
-                FreeShippingNotificationEnabled = _catalogSettings.ShowFreeShippingNotification,
-                ManufacturerPartNumber = product.ManufacturerPartNumber,
-                ShowGtin = _catalogSettings.ShowGtin,
-                Gtin = product.Gtin,
-                ManageInventoryMethod = product.ManageInventoryMethod,
-                StockAvailability = _productService.FormatStockMessage(product, ""),
-                HasSampleDownload = product.IsDownload && product.HasSampleDownload,
-                DisplayDiscontinuedMessage = !product.Published && _catalogSettings.DisplayDiscontinuedMessageForUnpublishedProducts
-            };
+        //    //standard properties
+        //    var model = new ProductDetailsModel
+        //    {
+        //        Id = product.Id,
+        //        Name = _localizationService.GetLocalized(product, x => x.Name),
+        //        ShortDescription = _localizationService.GetLocalized(product, x => x.ShortDescription),
+        //        FullDescription = _localizationService.GetLocalized(product, x => x.FullDescription),
+        //        MetaKeywords = _localizationService.GetLocalized(product, x => x.MetaKeywords),
+        //        MetaDescription = _localizationService.GetLocalized(product, x => x.MetaDescription),
+        //        MetaTitle = _localizationService.GetLocalized(product, x => x.MetaTitle),
+        //        SeName = _urlRecordService.GetSeName(product),
+        //        ProductType = product.ProductType,
+        //        ShowSku = _catalogSettings.ShowSkuOnProductDetailsPage,
+        //        Sku = product.Sku,
+        //        ShowManufacturerPartNumber = _catalogSettings.ShowManufacturerPartNumber,
+        //        FreeShippingNotificationEnabled = _catalogSettings.ShowFreeShippingNotification,
+        //        ManufacturerPartNumber = product.ManufacturerPartNumber,
+        //        ShowGtin = _catalogSettings.ShowGtin,
+        //        Gtin = product.Gtin,
+        //        ManageInventoryMethod = product.ManageInventoryMethod,
+        //        StockAvailability = _productService.FormatStockMessage(product, ""),
+        //        HasSampleDownload = product.IsDownload && product.HasSampleDownload,
+        //        DisplayDiscontinuedMessage = !product.Published && _catalogSettings.DisplayDiscontinuedMessageForUnpublishedProducts
+        //    };
 
-            //automatically generate product description?
-            if (_seoSettings.GenerateProductMetaDescription && string.IsNullOrEmpty(model.MetaDescription))
-            {
-                //based on short description
-                model.MetaDescription = model.ShortDescription;
-            }
+        //    //automatically generate product description?
+        //    if (_seoSettings.GenerateProductMetaDescription && string.IsNullOrEmpty(model.MetaDescription))
+        //    {
+        //        //based on short description
+        //        model.MetaDescription = model.ShortDescription;
+        //    }
 
-            //shipping info
-            model.IsShipEnabled = product.IsShipEnabled;
-            if (product.IsShipEnabled)
-            {
-                model.IsFreeShipping = product.IsFreeShipping;
-                //delivery date
-                var deliveryDate = _dateRangeService.GetDeliveryDateById(product.DeliveryDateId);
-                if (deliveryDate != null)
-                {
-                    model.DeliveryDate = _localizationService.GetLocalized(deliveryDate, dd => dd.Name);
-                }
-            }
+        //    //shipping info
+        //    model.IsShipEnabled = product.IsShipEnabled;
+        //    if (product.IsShipEnabled)
+        //    {
+        //        model.IsFreeShipping = product.IsFreeShipping;
+        //        //delivery date
+        //        var deliveryDate = _dateRangeService.GetDeliveryDateById(product.DeliveryDateId);
+        //        if (deliveryDate != null)
+        //        {
+        //            model.DeliveryDate = _localizationService.GetLocalized(deliveryDate, dd => dd.Name);
+        //        }
+        //    }
 
-            //email a friend
-            model.EmailAFriendEnabled = _catalogSettings.EmailAFriendEnabled;
-            //compare products
-            model.CompareProductsEnabled = _catalogSettings.CompareProductsEnabled;
-            //store name
-            model.CurrentStoreName = _localizationService.GetLocalized(_storeContext.CurrentStore, x => x.Name);
+        //    //email a friend
+        //    model.EmailAFriendEnabled = _catalogSettings.EmailAFriendEnabled;
+        //    //compare products
+        //    model.CompareProductsEnabled = _catalogSettings.CompareProductsEnabled;
+        //    //store name
+        //    model.CurrentStoreName = _localizationService.GetLocalized(_storeContext.CurrentStore, x => x.Name);
 
-            //vendor details
-            if (_vendorSettings.ShowVendorOnProductDetailsPage)
-            {
-                var vendor = _vendorService.GetVendorById(product.VendorId);
-                if (vendor != null && !vendor.Deleted && vendor.Active)
-                {
-                    model.ShowVendor = true;
+        //    //vendor details
+        //    if (_vendorSettings.ShowVendorOnProductDetailsPage)
+        //    {
+        //        var vendor = _vendorService.GetVendorById(product.VendorId);
+        //        if (vendor != null && !vendor.Deleted && vendor.Active)
+        //        {
+        //            model.ShowVendor = true;
 
-                    model.VendorModel = new VendorBriefInfoModel
-                    {
-                        Id = vendor.Id,
-                        Name = _localizationService.GetLocalized(vendor, x => x.Name),
-                        SeName = _urlRecordService.GetSeName(vendor),
-                    };
-                }
-            }
+        //            model.VendorModel = new VendorBriefInfoModel
+        //            {
+        //                Id = vendor.Id,
+        //                Name = _localizationService.GetLocalized(vendor, x => x.Name),
+        //                SeName = _urlRecordService.GetSeName(vendor),
+        //            };
+        //        }
+        //    }
 
-            //page sharing
-            if (_catalogSettings.ShowShareButton && !string.IsNullOrEmpty(_catalogSettings.PageShareCode))
-            {
-                var shareCode = _catalogSettings.PageShareCode;
-                if (_webHelper.IsCurrentConnectionSecured())
-                {
-                    //need to change the add this link to be https linked when the page is, so that the page doesn't ask about mixed mode when viewed in https...
-                    shareCode = shareCode.Replace("http://", "https://");
-                }
-                model.PageShareCode = shareCode;
-            }
+        //    //page sharing
+        //    if (_catalogSettings.ShowShareButton && !string.IsNullOrEmpty(_catalogSettings.PageShareCode))
+        //    {
+        //        var shareCode = _catalogSettings.PageShareCode;
+        //        if (_webHelper.IsCurrentConnectionSecured())
+        //        {
+        //            //need to change the add this link to be https linked when the page is, so that the page doesn't ask about mixed mode when viewed in https...
+        //            shareCode = shareCode.Replace("http://", "https://");
+        //        }
+        //        model.PageShareCode = shareCode;
+        //    }
 
-            //back in stock subscriptions
-            if (product.ManageInventoryMethod == ManageInventoryMethod.ManageStock &&
-                product.BackorderMode == BackorderMode.NoBackorders &&
-                product.AllowBackInStockSubscriptions &&
-                _productService.GetTotalStockQuantity(product) <= 0)
-            {
-                //out of stock
-                model.DisplayBackInStockSubscription = true;
-            }
+        //    //back in stock subscriptions
+        //    if (product.ManageInventoryMethod == ManageInventoryMethod.ManageStock &&
+        //        product.BackorderMode == BackorderMode.NoBackorders &&
+        //        product.AllowBackInStockSubscriptions &&
+        //        _productService.GetTotalStockQuantity(product) <= 0)
+        //    {
+        //        //out of stock
+        //        model.DisplayBackInStockSubscription = true;
+        //    }
 
-            //breadcrumb
-            //do not prepare this model for the associated products. anyway it's not used
-            if (_catalogSettings.CategoryBreadcrumbEnabled && !isAssociatedProduct)
-            {
-                model.Breadcrumb = PrepareProductBreadcrumbModel(product);
-            }
+        //    //breadcrumb
+        //    //do not prepare this model for the associated products. anyway it's not used
+        //    if (_catalogSettings.CategoryBreadcrumbEnabled && !isAssociatedProduct)
+        //    {
+        //        model.Breadcrumb = PrepareProductBreadcrumbModel(product);
+        //    }
 
-            //product tags
-            //do not prepare this model for the associated products. anyway it's not used
-            if (!isAssociatedProduct)
-            {
-                model.ProductTags = PrepareProductTagModels(product);
-            }
+        //    //product tags
+        //    //do not prepare this model for the associated products. anyway it's not used
+        //    if (!isAssociatedProduct)
+        //    {
+        //        model.ProductTags = PrepareProductTagModels(product);
+        //    }
 
-            //pictures
-            model.DefaultPictureZoomEnabled = _mediaSettings.DefaultPictureZoomEnabled;
-            model.DefaultPictureModel = PrepareProductDetailsPictureModel(product, isAssociatedProduct, out IList<PictureModel> allPictureModels);
-            model.PictureModels = allPictureModels;
+        //    //pictures
+        //    model.DefaultPictureZoomEnabled = _mediaSettings.DefaultPictureZoomEnabled;
+        //    model.DefaultPictureModel = PrepareProductDetailsPictureModel(product, isAssociatedProduct, out IList<PictureModel> allPictureModels);
+        //    model.PictureModels = allPictureModels;
 
-            //price
-            model.ProductPrice = PrepareProductPriceModel(product);
+        //    //price
+        //    model.ProductPrice = PrepareProductPriceModel(product);
 
-            //'Add to cart' model
-            model.AddToCart = PrepareProductAddToCartModel(product, updatecartitem);
+        //    //'Add to cart' model
+        //    model.AddToCart = PrepareProductAddToCartModel(product, updatecartitem);
 
-            //gift card
-            if (product.IsGiftCard)
-            {
-                model.GiftCard.IsGiftCard = true;
-                model.GiftCard.GiftCardType = product.GiftCardType;
+        //    //gift card
+        //    if (product.IsGiftCard)
+        //    {
+        //        model.GiftCard.IsGiftCard = true;
+        //        model.GiftCard.GiftCardType = product.GiftCardType;
 
-                if (updatecartitem == null)
-                {
-                    model.GiftCard.SenderName = _customerService.GetCustomerFullName(_workContext.CurrentCustomer);
-                    model.GiftCard.SenderEmail = _workContext.CurrentCustomer.Email;
-                }
-                else
-                {
-                    _productAttributeParser.GetGiftCardAttribute(updatecartitem.AttributesXml,
-                        out string giftCardRecipientName, out string giftCardRecipientEmail,
-                        out string giftCardSenderName, out string giftCardSenderEmail, out string giftCardMessage);
+        //        if (updatecartitem == null)
+        //        {
+        //            model.GiftCard.SenderName = _customerService.GetCustomerFullName(_workContext.CurrentCustomer);
+        //            model.GiftCard.SenderEmail = _workContext.CurrentCustomer.Email;
+        //        }
+        //        else
+        //        {
+        //            _productAttributeParser.GetGiftCardAttribute(updatecartitem.AttributesXml,
+        //                out string giftCardRecipientName, out string giftCardRecipientEmail,
+        //                out string giftCardSenderName, out string giftCardSenderEmail, out string giftCardMessage);
 
-                    model.GiftCard.RecipientName = giftCardRecipientName;
-                    model.GiftCard.RecipientEmail = giftCardRecipientEmail;
-                    model.GiftCard.SenderName = giftCardSenderName;
-                    model.GiftCard.SenderEmail = giftCardSenderEmail;
-                    model.GiftCard.Message = giftCardMessage;
-                }
-            }
+        //            model.GiftCard.RecipientName = giftCardRecipientName;
+        //            model.GiftCard.RecipientEmail = giftCardRecipientEmail;
+        //            model.GiftCard.SenderName = giftCardSenderName;
+        //            model.GiftCard.SenderEmail = giftCardSenderEmail;
+        //            model.GiftCard.Message = giftCardMessage;
+        //        }
+        //    }
 
-            //product attributes
-            model.ProductAttributes = PrepareProductAttributeModels(product, updatecartitem);
+        //    //product attributes
+        //    model.ProductAttributes = PrepareProductAttributeModels(product, updatecartitem);
 
-            //product specifications
-            //do not prepare this model for the associated products. anyway it's not used
-            if (!isAssociatedProduct)
-            {
-                model.ProductSpecifications = PrepareProductSpecificationModel(product);
-            }
+        //    //product specifications
+        //    //do not prepare this model for the associated products. anyway it's not used
+        //    if (!isAssociatedProduct)
+        //    {
+        //        model.ProductSpecifications = PrepareProductSpecificationModel(product);
+        //    }
 
-            //product review overview
-            model.ProductReviewOverview = PrepareProductReviewOverviewModel(product);
+        //    //product review overview
+        //    model.ProductReviewOverview = PrepareProductReviewOverviewModel(product);
 
-            //tier prices
-            if (product.HasTierPrices && _permissionService.Authorize(StandardPermissionProvider.DisplayPrices))
-            {
-                model.TierPrices = PrepareProductTierPriceModels(product);
-            }
+        //    //tier prices
+        //    if (product.HasTierPrices && _permissionService.Authorize(StandardPermissionProvider.DisplayPrices))
+        //    {
+        //        model.TierPrices = PrepareProductTierPriceModels(product);
+        //    }
 
-            //manufacturers
-            //do not prepare this model for the associated products. anyway it's not used
-            if (!isAssociatedProduct)
-            {
-                model.ProductManufacturers = PrepareProductManufacturerModels(product);
-            }
+        //    //manufacturers
+        //    //do not prepare this model for the associated products. anyway it's not used
+        //    if (!isAssociatedProduct)
+        //    {
+        //        model.ProductManufacturers = PrepareProductManufacturerModels(product);
+        //    }
 
-            //rental products
-            if (product.IsRental)
-            {
-                model.IsRental = true;
-                //set already entered dates attributes (if we're going to update the existing shopping cart item)
-                if (updatecartitem != null)
-                {
-                    model.RentalStartDate = updatecartitem.RentalStartDateUtc;
-                    model.RentalEndDate = updatecartitem.RentalEndDateUtc;
-                }
-            }
+        //    //rental products
+        //    if (product.IsRental)
+        //    {
+        //        model.IsRental = true;
+        //        //set already entered dates attributes (if we're going to update the existing shopping cart item)
+        //        if (updatecartitem != null)
+        //        {
+        //            model.RentalStartDate = updatecartitem.RentalStartDateUtc;
+        //            model.RentalEndDate = updatecartitem.RentalEndDateUtc;
+        //        }
+        //    }
 
-            //associated products
-            if (product.ProductType == ProductType.GroupedProduct)
-            {
-                //ensure no circular references
-                if (!isAssociatedProduct)
-                {
-                    var associatedProducts = _productService.GetAssociatedProducts(product.Id, _storeContext.CurrentStore.Id);
-                    foreach (var associatedProduct in associatedProducts)
-                        model.AssociatedProducts.Add(PrepareProductDetailsModel(associatedProduct, null, true));
-                }
-            }
+        //    //associated products
+        //    if (product.ProductType == ProductType.GroupedProduct)
+        //    {
+        //        //ensure no circular references
+        //        if (!isAssociatedProduct)
+        //        {
+        //            var associatedProducts = _productService.GetAssociatedProducts(product.Id, _storeContext.CurrentStore.Id);
+        //            foreach (var associatedProduct in associatedProducts)
+        //                model.AssociatedProducts.Add(PrepareProductDetailsModel(associatedProduct, null, true));
+        //        }
+        //    }
 
-            return model;
-        }
+        //    return model;
+        //}
 
 
         /// <inheritdoc />
@@ -614,6 +614,77 @@ namespace Nop.Plugin.Products.AttributeFilters
                 foreach(var value in values) // unfortunate double-iteration 
                 attr.ProductAttributeValues.Add(value);
             }
+        }
+
+
+
+        /// <inheritdoc />
+        /// <summary>
+        /// Custom code is to always prepareSpecificationAttributes regardless of param. Would be better to instead override 
+        /// CatalogController.cs' line:
+        /// var models =  _productModelFactory.PrepareProductOverviewModels(products, false, _catalogSettings.ShowProductImagesInSearchAutoComplete, _mediaSettings.AutoCompleteSearchThumbPictureSize).ToList();
+        /// to:
+        /// var models =  _productModelFactory.PrepareProductOverviewModels(products, false, _catalogSettings.ShowProductImagesInSearchAutoComplete, _mediaSettings.AutoCompleteSearchThumbPictureSize
+        /// , prepareSpecificationAttributes: true).ToList();
+        /// </summary>
+        /// <param name="products">Collection of products</param>
+        /// <param name="preparePriceModel">Whether to prepare the price model</param>
+        /// <param name="preparePictureModel">Whether to prepare the picture model</param>
+        /// <param name="productThumbPictureSize">Product thumb picture size (longest side); pass null to use the default value of media settings</param>
+        /// <param name="prepareSpecificationAttributes">Whether to prepare the specification attribute models</param>
+        /// <param name="forceRedirectionAfterAddingToCart">Whether to force redirection after adding to cart</param>
+        /// <returns>Collection of product overview model</returns>
+        public override IEnumerable<ProductOverviewModel> PrepareProductOverviewModels(IEnumerable<Product> products,
+            bool preparePriceModel = true, bool preparePictureModel = true,
+            int? productThumbPictureSize = null, bool prepareSpecificationAttributes = false,
+            bool forceRedirectionAfterAddingToCart = false)
+        {
+            if (products == null)
+                throw new ArgumentNullException(nameof(products));
+
+            prepareSpecificationAttributes = true; // THIS IS THE CUSTOM CODE LINE, REST OF FUNCTION IS UNMODIFIED
+
+            var models = new List<ProductOverviewModel>();
+            foreach (var product in products)
+            {
+                var model = new ProductOverviewModel
+                {
+                    Id = product.Id,
+                    Name = _localizationService.GetLocalized(product, x => x.Name),
+                    ShortDescription = _localizationService.GetLocalized(product, x => x.ShortDescription),
+                    FullDescription = _localizationService.GetLocalized(product, x => x.FullDescription),
+                    SeName = _urlRecordService.GetSeName(product),
+                    Sku = product.Sku,
+                    ProductType = product.ProductType,
+                    MarkAsNew = product.MarkAsNew &&
+                        (!product.MarkAsNewStartDateTimeUtc.HasValue || product.MarkAsNewStartDateTimeUtc.Value < DateTime.UtcNow) &&
+                        (!product.MarkAsNewEndDateTimeUtc.HasValue || product.MarkAsNewEndDateTimeUtc.Value > DateTime.UtcNow)
+                };
+
+                //price
+                if (preparePriceModel)
+                {
+                    model.ProductPrice = PrepareProductOverviewPriceModel(product, forceRedirectionAfterAddingToCart);
+                }
+
+                //picture
+                if (preparePictureModel)
+                {
+                    model.DefaultPictureModel = PrepareProductOverviewPictureModel(product, productThumbPictureSize);
+                }
+
+                //specs
+                if (prepareSpecificationAttributes)
+                {
+                    model.SpecificationAttributeModels = PrepareProductSpecificationModel(product);
+                }
+
+                //reviews
+                model.ReviewOverviewModel = PrepareProductReviewOverviewModel(product);
+
+                models.Add(model);
+            }
+            return models;
         }
     }
 }
