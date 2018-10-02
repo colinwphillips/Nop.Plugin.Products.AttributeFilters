@@ -45,7 +45,6 @@ namespace Nop.Plugin.Products.AttributeFilters.Infrastructure
                 return false;
             var currentPlugin = pluginFinder.GetPluginDescriptorBySystemName(thisPlugin.SystemName);
             return currentPlugin != null && currentPlugin.Installed;
-
         }
 
         private static PluginDescriptor GetPluginInfo()
