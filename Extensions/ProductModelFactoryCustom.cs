@@ -373,30 +373,9 @@ namespace Nop.Plugin.Products.AttributeFilters
             if (product == null)
                 throw new ArgumentNullException(nameof(product));
 
-            //performance optimization
-            //We cache a value indicating whether a product has attributes
-            IList<ProductAttributeMapping> productAttributeMapping = null;
-            var cacheKey = string.Format(ModelCacheEventConsumer.PRODUCT_HAS_PRODUCT_ATTRIBUTES_KEY, product.Id);
-            var hasProductAttributesCache = _cacheManager.Get(cacheKey, () =>
-            {
-                //no value in the cache yet
-                //let's load attributes and cache the result (true/false)
-                productAttributeMapping = _productAttributeService.GetProductAttributeMappingsByProductId(product.Id);
-                return productAttributeMapping.Any();
-            });
-            if (hasProductAttributesCache && productAttributeMapping == null)
-            {
-                //cache indicates that the product has attributes
-                //let's load them
-                productAttributeMapping = _productAttributeService.GetProductAttributeMappingsByProductId(product.Id);
-            }
-            if (productAttributeMapping == null)
-            {
-                productAttributeMapping = new List<ProductAttributeMapping>();
-            }
-
             var model = new List<ProductDetailsModel.ProductAttributeModel>();
 
+            var productAttributeMapping = _productAttributeService.GetProductAttributeMappingsByProductId(product.Id);
             foreach (var attribute in productAttributeMapping)
             {
                 var attributeModel = new ProductDetailsModel.ProductAttributeModel
@@ -409,7 +388,7 @@ namespace Nop.Plugin.Products.AttributeFilters
                     TextPrompt = _localizationService.GetLocalized(attribute, x => x.TextPrompt),
                     IsRequired = attribute.IsRequired,
                     AttributeControlType = attribute.AttributeControlType,
-                    DefaultValue = updatecartitem != null ? null : attribute.DefaultValue,
+                    DefaultValue = updatecartitem != null ? null : _localizationService.GetLocalized(attribute, x => x.DefaultValue),
                     HasCondition = !string.IsNullOrEmpty(attribute.ConditionAttributeXml)
                 };
                 if (!string.IsNullOrEmpty(attribute.ValidationFileAllowedExtensions))
@@ -470,7 +449,7 @@ namespace Nop.Plugin.Products.AttributeFilters
                         //"image square" picture (with with "image squares" attribute type only)
                         if (attributeValue.ImageSquaresPictureId > 0)
                         {
-                            var productAttributeImageSquarePictureCacheKey = string.Format(ModelCacheEventConsumer.PRODUCTATTRIBUTE_IMAGESQUARE_PICTURE_MODEL_KEY,
+                            var productAttributeImageSquarePictureCacheKey = string.Format(NopModelCacheDefaults.ProductAttributeImageSquarePictureModelKey,
                                    attributeValue.ImageSquaresPictureId,
                                    _webHelper.IsCurrentConnectionSecured(),
                                    _storeContext.CurrentStore.Id);

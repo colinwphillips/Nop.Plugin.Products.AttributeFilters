@@ -1,6 +1,7 @@
 ﻿using System;
-using Nop.Core.Plugins;
+using Nop.Core;
 using Nop.Services.Common;
+using Nop.Services.Plugins;
 
 namespace Nop.Plugin.Products.AttributeFilters
 {
